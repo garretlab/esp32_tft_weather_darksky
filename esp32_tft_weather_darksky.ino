@@ -219,9 +219,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(tftCs, tftDc);
 
 const char degreeSymbol = 247;
 
-/* semaphore */
-SemaphoreHandle_t semaphore = NULL;
-
 float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -480,25 +477,22 @@ void printInfo(void *arg) {
       dataIsValid = 0;
     } else if (lastUpdate < dsParser.lastUpdate) {
       /* dark sky data has been updated */
-      //if (xSemaphoreTake(semaphore, 10) == pdTRUE) {
-        for (int i = 0, pos = 0; i < 14; i++) {
-          if (i == 1) { /* skip dsParser.weatherData[1]. it is forecast data of current hour so abandon it. */
-            continue;
-          }
-          /* set weather temperature humidity and precipitation probablity */
-          weather[pos] =
-            darkskyWeatherToIcon(dsParser.weatherData[i].weather, dsParser.weatherData[i].precipIntensity);
-          temperature[pos] = dsParser.weatherData[i].temperature;
-          humidity[pos] = dsParser.weatherData[i].humidity;
-          precipProbability[pos] = dsParser.weatherData[i].precipProbability;
-          windSpeed[pos] = dsParser.weatherData[i].windSpeed;
-          pos++;
+      for (int i = 0, pos = 0; i < 14; i++) {
+        if (i == 1) { /* skip dsParser.weatherData[1]. it is forecast data of current hour so abandon it. */
+          continue;
         }
-        needRedrawDisplay = 1;
-        dataIsValid = 1;
-        lastUpdate = dsParser.lastUpdate;
-     //   xSemaphoreGive(semaphore);
-     // }
+        /* set weather temperature humidity and precipitation probablity */
+        weather[pos] =
+          darkskyWeatherToIcon(dsParser.weatherData[i].weather, dsParser.weatherData[i].precipIntensity);
+        temperature[pos] = dsParser.weatherData[i].temperature;
+        humidity[pos] = dsParser.weatherData[i].humidity;
+        precipProbability[pos] = dsParser.weatherData[i].precipProbability;
+        windSpeed[pos] = dsParser.weatherData[i].windSpeed;
+        pos++;
+      }
+      needRedrawDisplay = 1;
+      dataIsValid = 1;
+      lastUpdate = dsParser.lastUpdate;
     }
 
     if (needRedrawDisplay) {
@@ -560,7 +554,6 @@ void setup() {
   tft.setTextColor(ILI9341_BLUE, ILI9341_BLACK);
   tft.printf("Powered by Dark Sky");
 
-  semaphore = xSemaphoreCreateMutex();
   xTaskCreatePinnedToCore(printInfo, "printInfo", 4096, NULL, 1, NULL, 0);
 
   WiFi.begin(ssid, password);
@@ -573,10 +566,7 @@ void setup() {
 }
 
 void loop() {
- // if (xSemaphoreTake(semaphore, 10) == pdTRUE) {
-    dsParser.getData();
- //   xSemaphoreGive(semaphore);
- // }
+  dsParser.getData();
   Serial.printf("hour = %d\n", dsParser.currentHour);
   for (int i = 0; i < 14; i++) {
     Serial.printf("%02d: w = %2d, t = %4.1fC, h = %4.1f%%, w = %4.1fm/s, p = %4d%%, r = %4.1fmm\n",
