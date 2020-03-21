@@ -150,8 +150,6 @@ void DarkskyParser::setSubStatus(String key) {
     subStatus = HUMIDITY;
   } else if (key == "pressure") {
     subStatus = PRESSURE;
-  } else if (key == "windSpeed") {
-    subStatus = WINDSPEED;
   } else {
     subStatus = NONE;
   }
@@ -169,7 +167,7 @@ void DarkskyParser::setData(String value) {
             if (status == CURRENTLY) {
               lastUpdate = value.toInt();
               currentTime = localtime(&lastUpdate);
-              currentHour = currentTime->tm_hour;
+              currentHour = currentTime->tm_hour % 12;
             };
             break;
           case ICON:
@@ -196,8 +194,6 @@ void DarkskyParser::setData(String value) {
           case PRESSURE:
             weatherData[counter].pressure = value.toFloat();
             break;
-          case WINDSPEED:
-            weatherData[counter].windSpeed = value.toFloat();
           default:
             break;
         }

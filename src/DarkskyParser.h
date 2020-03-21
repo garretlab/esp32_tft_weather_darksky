@@ -14,7 +14,6 @@ typedef struct {
       float precipIntensity;
       int precipProbability;
       float pressure;
-      float windSpeed;
 } weatherInfo_t;  
 
 class DarkskyParser: public JsonListener {
@@ -22,7 +21,6 @@ class DarkskyParser: public JsonListener {
     weatherInfo_t weatherData[DS_NUMBER_OF_HOURLY_DATA + 1];
     int currentHour;
     time_t lastUpdate = 0;
-    time_t lastUpdate0 = 0;
 
     virtual void whitespace(char c);
     virtual void startDocument();
@@ -77,8 +75,7 @@ class DarkskyParser: public JsonListener {
       S0, CURRENTLY, HOURLY, HOURLYDATA,
     } status;
     enum {
-      NONE, TIME, ICON, PRECIPINTENSITY, PRECIPPROBABILITY, TEMPERATURE, 
-      HUMIDITY, PRESSURE, WINDSPEED,
+      NONE, TIME, ICON, PRECIPINTENSITY, PRECIPPROBABILITY, TEMPERATURE, HUMIDITY, PRESSURE,
     } subStatus;
 
     const char weatherName[10][20] = {
